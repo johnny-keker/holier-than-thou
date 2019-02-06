@@ -7,7 +7,9 @@
 </head>
 <body onload="main()">
   <div class="controls">
-    <label>X [-180<input type="range" min="-180" max="180" value="0" class="controls__slider slider__y"></input>180]</label>
+    <div class=controls__slider><label>X [-180<input type="range" min="-180" max="180" value="0" class="slider__x"></input>180]</label></div>
+    <div class=controls__slider><label>Y [-180<input type="range" min="-180" max="180" value="0" class="slider__y"></input>180]</label></div>
+    <div class=controls__slider><label>Z [-180<input type="range" min="-180" max="180" value="0" class="slider__z"></input>180]</label></div>
   </div>
   <canvas class="gl-canvas" width="960" height="540"></canvas>
 </body>

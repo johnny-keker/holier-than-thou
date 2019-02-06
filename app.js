@@ -21,7 +21,7 @@ async function main() {
 
   const buffers = initBuffers(gl);
 
-  renderScene(gl, progInfo, buffers, 0);
+  renderScene(gl, progInfo, buffers, [0, 0, 0]);
   document.addEventListener('input', () => redrawScene(gl, progInfo, buffers));
 }
 
@@ -138,7 +138,7 @@ function initBuffers(gl) {
   return { position: positionBuffer, color: colorBuffer };
 }
 
-function renderScene(gl, programInfo, buffers, yRot) {
+function renderScene(gl, programInfo, buffers, rotations) {
   // init
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
   gl.clearDepth(1.0);
@@ -163,9 +163,10 @@ function renderScene(gl, programInfo, buffers, yRot) {
 
   const modelViewMatrix = mat4.create();
 
-  console.log(yRot);
   mat4.translate(modelViewMatrix, modelViewMatrix, [-0.0, 0.0, -6.0]);
-  mat4.rotate(modelViewMatrix, modelViewMatrix, degToRad(yRot), [0, 1, 0]);
+  mat4.rotate(modelViewMatrix, modelViewMatrix, degToRad(rotations[0]), [1, 0, 0]);
+  mat4.rotate(modelViewMatrix, modelViewMatrix, degToRad(rotations[1]), [0, 1, 0]);
+  mat4.rotate(modelViewMatrix, modelViewMatrix, degToRad(rotations[2]), [0, 0, 1]);
 
   {
     const numComponents = 3;
@@ -231,7 +232,9 @@ function degToRad(d) {
 }
 
 function redrawScene(gl, progInfo, buffers) {
-  var y_rotation = document.querySelector('.slider__y').value;
+  var x = document.querySelector('.slider__x').value;
+  var y = document.querySelector('.slider__y').value;
+  var z = document.querySelector('.slider__z').value;
   
-  renderScene(gl, progInfo, buffers, y_rotation);
+  renderScene(gl, progInfo, buffers, [x, y, z]);
 }
