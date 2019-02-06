@@ -15,8 +15,8 @@ async function main() {
 
   const progInfo = await initShader(
     gl, 
-    'file:///home/keker/code/holier-than-thou/shaders/vertex_shader.glsl',
-    'file:///home/keker/code/holier-than-thou/shaders/fragment_shader.glsl'
+    'shaders/vertex_shader.glsl',
+    'shaders/fragment_shader.glsl'
   );
 
   const buffers = initBuffers(gl);
@@ -31,7 +31,6 @@ async function initShader(gl, vertex, fragment) {
 
   // init program
   const program = gl.createProgram();
-  console.log(fragmentShader);
   gl.attachShader(program, vertexShader);
   gl.attachShader(program, fragmentShader);
   gl.linkProgram(program);
@@ -45,6 +44,7 @@ async function initShader(gl, vertex, fragment) {
     program: program,
     attribLocations: {
       vertexPosition: gl.getAttribLocation(program, 'aVertexPosition'),
+      vertexColor: gl.getAttribLocation(program, 'aVertexColor'),
     },
     uniformLocations: {
       projectionMatrix: gl.getUniformLocation(program, 'uProjectionMatrix'),
@@ -80,13 +80,30 @@ function initBuffers(gl) {
     -1.0, -1.0,
     -1.0,  1.0,
      1.0,  0.0,
+    -4.0, -4.0,
+    -4.0, -2.0,
+    -2.0, -3.0,
   ];
 
   gl.bufferData(gl.ARRAY_BUFFER,
     new Float32Array(positions),
     gl.STATIC_DRAW);
-  
-  return { position: positionBuffer };
+
+  const colorBuffer = gl.createBuffer();
+
+  gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+
+  const colors = [
+    1.0,  0.0,  0.0,  1.0,    // red
+    0.0,  1.0,  0.0,  1.0,    // green
+    0.0,  0.0,  1.0,  1.0,    // blue
+  ];
+
+  gl.bufferData(gl.ARRAY_BUFFER,
+    new Float32Array(colors),
+    gl.STATIC_DRAW);
+
+  return { position: positionBuffer, color: colorBuffer };
 }
 
 function renderScene(gl, programInfo, buffers) {
@@ -122,7 +139,6 @@ function renderScene(gl, programInfo, buffers) {
     const normalize = false;
     const stride = 0;
     const offset = 0;
-    console.log(buffers.position);
     gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
     gl.vertexAttribPointer(
       programInfo.attribLocations.vertexPosition,
@@ -132,6 +148,15 @@ function renderScene(gl, programInfo, buffers) {
       stride,
       offset);
     gl.enableVertexAttribArray(programInfo.attribLocations.vertexPosition);
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffers.color);
+    gl.vertexAttribPointer(
+      programInfo.attribLocations.vertexColor,
+      4,
+      type,
+      normalize,
+      stride,
+      offset);
+    gl.enableVertexAttribArray(programInfo.attribLocations.vertexColor);
   }
 
   gl.useProgram(programInfo.program);
@@ -148,6 +173,6 @@ function renderScene(gl, programInfo, buffers) {
   {
     const offset = 0;
     const vertexCount = 3;
-    gl.drawArrays(gl.TRIANGLE_STRIP, offset, vertexCount);
+    gl.drawArrays(gl.TRIANGLES, offset, 3);
   }
 }

@@ -1,0 +1,10 @@
+body {
+  margin: 0;
+  justify-content: center;
+  display: flex;
+  background-color: black;
+  align-items: center;
+  height: 100vh;
+}
+
+.gl-canvas { }
