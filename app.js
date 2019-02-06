@@ -77,13 +77,32 @@ function initBuffers(gl) {
   gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
 
   const positions = [
-    -1.0, -1.0,
-    -1.0,  1.0,
-     1.0,  0.0,
-    -4.0, -4.0,
-    -4.0, -2.0,
-    -2.0, -3.0,
+    // first face
+    0.0,  0.0, 2.0,
+    0.0,  1.0, 0.0,
+    2.0, 0.0, 0.0,
+
+    // second face
+    0.0, 0.0, 2.0,
+    2.0, 0.0, 0.0,
+    Math.sqrt(2), -2.0, 0.0,
+
+    // third face
+    0.0, 0.0, 2.0,
+    Math.sqrt(2), -2.0, 0.0,
+    -Math.sqrt(2), -2.0, 0.0,
+
+    // fourth face
+    0.0, 0.0, 2.0,
+    -Math.sqrt(2), -2.0, 0.0,
+    -2.0, 0.0, 0.0,
+
+    // fifth face
+    0.0, 0.0, 2.0,
+    -2.0, 0.0, 0.0,
+    0.0, 1.0, 0.0,
   ];
+
 
   gl.bufferData(gl.ARRAY_BUFFER,
     new Float32Array(positions),
@@ -94,9 +113,21 @@ function initBuffers(gl) {
   gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
 
   const colors = [
-    1.0,  0.0,  0.0,  1.0,    // red
-    0.0,  1.0,  0.0,  1.0,    // green
-    0.0,  0.0,  1.0,  1.0,    // blue
+    [8,  7,  5],
+    [8,  7,  5],
+    [8,  7,  5],
+    [54,  32,  35],    // Back face: red
+    [54,  32,  35],    // Back face: red
+    [54,  32,  35],    // Back face: red
+    [112,  5,  72],    // Top face: green
+    [112,  5,  72],    // Top face: green
+    [112,  5,  72],    // Top face: green
+    [114,  114,  171],    // Bottom face: blue
+    [114,  114,  171],    // Bottom face: blue
+    [114,  114,  171],    // Bottom face: blue
+    [120,  153,  212],    // Right face: yellow
+    [120,  153,  212],    // Right face: yellow
+    [120,  153,  212],    // Right face: yellow
   ];
 
   gl.bufferData(gl.ARRAY_BUFFER,
@@ -134,7 +165,7 @@ function renderScene(gl, programInfo, buffers) {
   mat4.translate(modelViewMatrix, modelViewMatrix, [-0.0, 0.0, -5.0]);
 
   {
-    const numComponents = 2;
+    const numComponents = 3;
     const type = gl.FLOAT;
     const normalize = false;
     const stride = 0;
@@ -151,9 +182,9 @@ function renderScene(gl, programInfo, buffers) {
     gl.bindBuffer(gl.ARRAY_BUFFER, buffers.color);
     gl.vertexAttribPointer(
       programInfo.attribLocations.vertexColor,
-      4,
-      type,
-      normalize,
+      3,
+      gl.UNSIGNED_BYTE,
+      true,
       stride,
       offset);
     gl.enableVertexAttribArray(programInfo.attribLocations.vertexColor);
@@ -172,7 +203,18 @@ function renderScene(gl, programInfo, buffers) {
 
   {
     const offset = 0;
-    const vertexCount = 3;
-    gl.drawArrays(gl.TRIANGLES, offset, 3);
+    const vertexCount = 15;
+    gl.drawArrays(gl.TRIANGLES, offset, vertexCount);
   }
+}
+
+function yRotation(angle) {
+  var c = Math.cos(angle);
+  var s = Math.sin(angle);
+  return [
+    c, 0, -s, 0,
+    0, 1, 0, 0,
+    s, 0, c, 0,
+    0, 0, 0, 1,
+  ];
 }

@@ -1,13 +1,13 @@
 
 // input vertex position
 attribute vec4 aVertexPosition;
-attribute vec4 aVertexColor;
+attribute vec3 aVertexColor;
 
 // provided
 uniform mat4 uModelViewMatrix;
 uniform mat4 uProjectionMatrix;
 
-varying lowp vec4 vColor;
+varying lowp vec3 vColor;
 
 void main() {
   vColor = aVertexColor;
