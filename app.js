@@ -79,29 +79,34 @@ function initBuffers(gl) {
 
   const positions = [
     // first face
-    0.0,  0.0, 2.0,
-    0.0,  Math.sqrt(2), 0.0,
-    2.0, 0.0, 0.0,
+    0.0, 0.0, 2.0,
+    1.0, -1.0, 0.0,
+    1.0, 1.0, 0.0,
 
     // second face
     0.0, 0.0, 2.0,
-    2.0, 0.0, 0.0,
-    Math.sqrt(2), -2.0, 0.0,
+    1.0, -1.0, 0.0,
+    -1.0, -1.0, 0.0,
 
     // third face
     0.0, 0.0, 2.0,
-    Math.sqrt(2), -2.0, 0.0,
-    -Math.sqrt(2), -2.0, 0.0,
+    -1.0, -1.0, 0.0,
+    -1.0, 1.0, 0.0,
 
     // fourth face
     0.0, 0.0, 2.0,
-    -Math.sqrt(2), -2.0, 0.0,
-    -2.0, 0.0, 0.0,
+    -1.0, 1.0, 0.0,
+    1.0, 1.0, 0.0,
 
-    // fifth face
-    0.0, 0.0, 2.0,
-    -2.0, 0.0, 0.0,
-    0.0, Math.sqrt(2), 0.0,
+    // bottom first triangle
+    -1.0, 1.0, 0.0,
+    1.0, -1.0, 0.0,
+    1.0, 1.0, 0.0,
+
+    // bottom second triangle
+    -1.0, 1.0, 0.0,
+    1.0, -1.0, 0.0,
+    -1.0, -1.0, 0.0,
   ];
 
 
@@ -114,25 +119,33 @@ function initBuffers(gl) {
   gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
 
   const colors = [
-    [8,  7,  5],
-    [8,  7,  5],
-    [8,  7,  5],
-    [54,  32,  35],    // Back face: red
-    [54,  32,  35],    // Back face: red
-    [54,  32,  35],    // Back face: red
-    [112,  5,  72],    // Top face: green
-    [112,  5,  72],    // Top face: green
-    [112,  5,  72],    // Top face: green
-    [114,  114,  171],    // Bottom face: blue
-    [114,  114,  171],    // Bottom face: blue
-    [114,  114,  171],    // Bottom face: blue
-    [120,  153,  212],    // Right face: yellow
-    [120,  153,  212],    // Right face: yellow
-    [120,  153,  212],    // Right face: yellow
+    216, 219, 226,    // Back face: red
+    216, 219, 226,    // Back face: red
+    216, 219, 226,    // Back face: red
+  
+    169, 188, 208,
+    169, 188, 208,
+    169, 188, 208,
+
+    88, 164, 176,
+    88, 164, 176,
+    88, 164, 176,
+
+    53, 63, 81,
+    53, 63, 81,
+    53, 63, 81,
+
+    27, 27, 30,
+    27, 27, 30,
+    27, 27, 30,
+
+    27, 27, 30,
+    27, 27, 30,
+    27, 27, 30,
   ];
 
   gl.bufferData(gl.ARRAY_BUFFER,
-    new Float32Array(colors),
+    new Uint8Array(colors),
     gl.STATIC_DRAW);
 
   return { position: positionBuffer, color: colorBuffer };
@@ -207,7 +220,7 @@ function renderScene(gl, programInfo, buffers, rotations) {
 
   {
     const offset = 0;
-    const vertexCount = 15;
+    const vertexCount = 18;
     gl.drawArrays(gl.TRIANGLES, offset, vertexCount);
   }
 }
