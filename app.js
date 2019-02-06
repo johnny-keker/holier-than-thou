@@ -21,7 +21,8 @@ async function main() {
 
   const buffers = initBuffers(gl);
 
-  renderScene(gl, progInfo, buffers);
+  renderScene(gl, progInfo, buffers, 0);
+  document.addEventListener('input', () => redrawScene(gl, progInfo, buffers));
 }
 
 async function initShader(gl, vertex, fragment) {
@@ -79,7 +80,7 @@ function initBuffers(gl) {
   const positions = [
     // first face
     0.0,  0.0, 2.0,
-    0.0,  1.0, 0.0,
+    0.0,  Math.sqrt(2), 0.0,
     2.0, 0.0, 0.0,
 
     // second face
@@ -100,7 +101,7 @@ function initBuffers(gl) {
     // fifth face
     0.0, 0.0, 2.0,
     -2.0, 0.0, 0.0,
-    0.0, 1.0, 0.0,
+    0.0, Math.sqrt(2), 0.0,
   ];
 
 
@@ -137,7 +138,7 @@ function initBuffers(gl) {
   return { position: positionBuffer, color: colorBuffer };
 }
 
-function renderScene(gl, programInfo, buffers) {
+function renderScene(gl, programInfo, buffers, yRot) {
   // init
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
   gl.clearDepth(1.0);
@@ -162,7 +163,9 @@ function renderScene(gl, programInfo, buffers) {
 
   const modelViewMatrix = mat4.create();
 
-  mat4.translate(modelViewMatrix, modelViewMatrix, [-0.0, 0.0, -5.0]);
+  console.log(yRot);
+  mat4.translate(modelViewMatrix, modelViewMatrix, [-0.0, 0.0, -6.0]);
+  mat4.rotate(modelViewMatrix, modelViewMatrix, degToRad(yRot), [0, 1, 0]);
 
   {
     const numComponents = 3;
@@ -217,4 +220,18 @@ function yRotation(angle) {
     s, 0, c, 0,
     0, 0, 0, 1,
   ];
+}
+
+function radToDeg(r) {
+  return r * 180 / Math.PI;
+}
+
+function degToRad(d) {
+    return d * Math.PI / 180;
+}
+
+function redrawScene(gl, progInfo, buffers) {
+  var y_rotation = document.querySelector('.slider__y').value;
+  
+  renderScene(gl, progInfo, buffers, y_rotation);
 }

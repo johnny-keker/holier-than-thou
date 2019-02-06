@@ -7,4 +7,11 @@ body {
   height: 100vh;
 }
 
-.gl-canvas { }
+.controls {
+  color: white;
+  border-style: solid;
+  border-radius: 10px;
+}
+
+.controls__slider {
+}
