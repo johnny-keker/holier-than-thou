@@ -1,9 +1,13 @@
 import * as matrix from '../utils/matrices.js';
+import Mouse from '../utils/mouse.js';
 
 async function main() {
   const canvas = document.querySelector(".gl-canvas");
   // GL context init
   const gl = canvas.getContext("webgl");
+  
+  var x = 0, y = 0;
+  var mouseDown = false;
 
   if (gl == null) {
     alert("Sorry, buddy - your browser or machine dont support WEB-GL(");
@@ -24,6 +28,11 @@ async function main() {
   const buffers = initBuffers(gl);
 
   renderScene(gl, progInfo, buffers, [0, 0, 0]);
+
+  new Mouse(canvas, (x, y) => {
+    renderScene(gl, progInfo, buffers, [0, 0, document.querySelector('.slider__z').value], x, y);
+  });
+
   document.addEventListener('input', () => redrawScene(gl, progInfo, buffers));
 }
 
@@ -124,9 +133,9 @@ function initBuffers(gl) {
   gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
 
   const colors = [
-    216, 219, 226,    // Back face: red
-    216, 219, 226,    // Back face: red
-    216, 219, 226,    // Back face: red
+    216, 219, 226,
+    216, 219, 226,
+    216, 219, 226,
   
     169, 188, 208,
     169, 188, 208,
@@ -156,7 +165,7 @@ function initBuffers(gl) {
   return { position: positionBuffer, color: colorBuffer };
 }
 
-function renderScene(gl, programInfo, buffers, rotations) {
+function renderScene(gl, programInfo, buffers, rotations, radX = null, radY = null) {
   // init
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
   gl.clearDepth(1.0);
@@ -187,7 +196,7 @@ function renderScene(gl, programInfo, buffers, rotations) {
     zFar);
 
   modelViewMatrix = matrix.translate(modelViewMatrix, -0.0, 0.0, -6.0);
-  modelViewMatrix = matrix.rotate(modelViewMatrix, rotations);
+  modelViewMatrix = matrix.rotate(modelViewMatrix, rotations, [radX, radY]);
   //mat4.rotate(modelViewMatrix, modelViewMatrix, degToRad(rotations[0]), [1, 0, 0]);
   //mat4.rotate(modelViewMatrix, modelViewMatrix, degToRad(rotations[1]), [0, 1, 0]);
   //mat4.rotate(modelViewMatrix, modelViewMatrix, degToRad(rotations[2]), [0, 0, 1]);

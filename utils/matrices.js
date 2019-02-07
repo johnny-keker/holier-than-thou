@@ -37,8 +37,8 @@ export function translate(matrix, tx, ty, tz) {
     ], 4);
 }
 
-export function rotate(matrix, angles) {
-  matrix = rotateZ(rotateY(rotateX(matrix, angles[0]), angles[1]), angles[2]);
+export function rotate(matrix, angles, rAngles = [null, null]) {
+  matrix = rotateZ(rotateY(rotateX(matrix, angles[0], rAngles[0]), angles[1], rAngles[1]), angles[2]);
   return matrix;
 }
 /*
@@ -81,10 +81,16 @@ function zRotation(angle) {
 }
 */
 // TODO: rewrite in more friendly way
-function rotateX(m, angle) {
+function rotateX(m, angle, rAngle = null) {
   var out = [];
-  var c = Math.cos(degToRad(angle));
-  var s = Math.sin(degToRad(angle));
+  var c, s;
+  if (rAngle == null) {
+    c = Math.cos(degToRad(angle));
+    s = Math.sin(degToRad(angle));
+  } else {
+    c = Math.cos(rAngle);
+    s = Math.sin(rAngle);
+  };
   for (var i = 0; i < 4; i++) {
     out[i] = m[i];
     out[i + 12] = m[i + 12];
@@ -96,10 +102,16 @@ function rotateX(m, angle) {
   return out;
 }
 
-function rotateY(m, angle) {
+function rotateY(m, angle, rAngle = null) {
   var out = [];
-  var c = Math.cos(degToRad(angle));
-  var s = Math.sin(degToRad(angle));
+  var c, s;
+  if (rAngle == null) {
+    c = Math.cos(degToRad(angle));
+    s = Math.sin(degToRad(angle));
+  } else {
+    c = Math.cos(rAngle);
+    s = Math.sin(rAngle);
+  };
   for (var i = 4; i < 8; i++) {
     out[i] = m[i];
     out[i + 8] = m[i + 8];
