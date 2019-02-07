@@ -1,3 +1,5 @@
+import * as matrix from '../utils/matrices.js';
+
 async function main() {
   const canvas = document.querySelector(".gl-canvas");
   // GL context init
@@ -109,6 +111,9 @@ function initBuffers(gl) {
     -1.0, -1.0, 0.0,
   ];
 
+  //for (var i = 0; i < positions.lehgth; i++)
+  //positions[i] = positions[i] / 4;
+
 
   gl.bufferData(gl.ARRAY_BUFFER,
     new Float32Array(positions),
@@ -162,25 +167,31 @@ function renderScene(gl, programInfo, buffers, rotations) {
 
   // creation of perspective matrix
   // field of view - 45 degrees
-  const fieldOfView = 45 * Math.PI / 180;
+  const fieldOfView = 45;
   const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
   const zNear = 0.1;
   const zFar = 100.0;
-  const projectionMatrix = mat4.create();
+  var projectionMatrix = new Float32Array(
+    [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]
+  );
 
-  mat4.perspective(projectionMatrix,
+
+  var modelViewMatrix = new Float32Array(
+    [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]
+  );
+
+  projectionMatrix = matrix.perspective(projectionMatrix,
     fieldOfView,
     aspect,
     zNear,
     zFar);
 
-  const modelViewMatrix = mat4.create();
-
-  mat4.translate(modelViewMatrix, modelViewMatrix, [-0.0, 0.0, -6.0]);
-  mat4.rotate(modelViewMatrix, modelViewMatrix, degToRad(rotations[0]), [1, 0, 0]);
-  mat4.rotate(modelViewMatrix, modelViewMatrix, degToRad(rotations[1]), [0, 1, 0]);
-  mat4.rotate(modelViewMatrix, modelViewMatrix, degToRad(rotations[2]), [0, 0, 1]);
-
+  modelViewMatrix = matrix.translate(modelViewMatrix, -0.0, 0.0, -6.0);
+  modelViewMatrix = matrix.rotate(modelViewMatrix, rotations);
+  //mat4.rotate(modelViewMatrix, modelViewMatrix, degToRad(rotations[0]), [1, 0, 0]);
+  //mat4.rotate(modelViewMatrix, modelViewMatrix, degToRad(rotations[1]), [0, 1, 0]);
+  //mat4.rotate(modelViewMatrix, modelViewMatrix, degToRad(rotations[2]), [0, 0, 1]);
+  gl.setUniformLocation
   {
     const numComponents = 3;
     const type = gl.FLOAT;
@@ -225,24 +236,7 @@ function renderScene(gl, programInfo, buffers, rotations) {
   }
 }
 
-function yRotation(angle) {
-  var c = Math.cos(angle);
-  var s = Math.sin(angle);
-  return [
-    c, 0, -s, 0,
-    0, 1, 0, 0,
-    s, 0, c, 0,
-    0, 0, 0, 1,
-  ];
-}
 
-function radToDeg(r) {
-  return r * 180 / Math.PI;
-}
-
-function degToRad(d) {
-    return d * Math.PI / 180;
-}
 
 function redrawScene(gl, progInfo, buffers) {
   var x = document.querySelector('.slider__x').value;
@@ -251,3 +245,5 @@ function redrawScene(gl, progInfo, buffers) {
   
   renderScene(gl, progInfo, buffers, [x, y, z]);
 }
+
+document.addEventListener('DOMContentLoaded', main);
