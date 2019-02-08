@@ -56,11 +56,12 @@ async function initShader(gl, vertex, fragment) {
     program: program,
     attribLocations: {
       vertexPosition: gl.getAttribLocation(program, 'aVertexPosition'),
-      vertexColor: gl.getAttribLocation(program, 'aVertexColor'),
+      texcoord: gl.getAttribLocation(program, 'aTexcoord'),
     },
     uniformLocations: {
       projectionMatrix: gl.getUniformLocation(program, 'uProjectionMatrix'),
       modelViewMatrix: gl.getUniformLocation(program, 'uModelViewMatrix'),
+      texture: gl.getUniformLocation(program, 'uTexture'),
     },
   };
 
@@ -127,42 +128,25 @@ function initBuffers(gl) {
   gl.bufferData(gl.ARRAY_BUFFER,
     new Float32Array(positions),
     gl.STATIC_DRAW);
-
-  const colorBuffer = gl.createBuffer();
-
-  gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-
-  const colors = [
-    216, 219, 226,
-    216, 219, 226,
-    216, 219, 226,
   
-    169, 188, 208,
-    169, 188, 208,
-    169, 188, 208,
+  const texcoordBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
+  setTexcoords(gl);
+  
+  var texture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE,
+    new Uint8Array([0, 0, 255, 255]));
+  var image = new Image();
+  image.src = "../textures/00.jpg"
+  image.addEventListener('load', function() {
+    // Now that the image has loaded make copy it to the texture.
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA,gl.UNSIGNED_BYTE, image);
+    gl.generateMipmap(gl.TEXTURE_2D);
+  });
 
-    88, 164, 176,
-    88, 164, 176,
-    88, 164, 176,
-
-    53, 63, 81,
-    53, 63, 81,
-    53, 63, 81,
-
-    27, 27, 30,
-    27, 27, 30,
-    27, 27, 30,
-
-    27, 27, 30,
-    27, 27, 30,
-    27, 27, 30,
-  ];
-
-  gl.bufferData(gl.ARRAY_BUFFER,
-    new Uint8Array(colors),
-    gl.STATIC_DRAW);
-
-  return { position: positionBuffer, color: colorBuffer };
+  return { position: positionBuffer, texture: texture, texcoord: texcoordBuffer };
 }
 
 function renderScene(gl, programInfo, buffers, rotations, radX = null, radY = null) {
@@ -197,9 +181,6 @@ function renderScene(gl, programInfo, buffers, rotations, radX = null, radY = nu
 
   modelViewMatrix = matrix.translate(modelViewMatrix, -0.0, 0.0, -6.0);
   modelViewMatrix = matrix.rotate(modelViewMatrix, rotations, [radX, radY]);
-  //mat4.rotate(modelViewMatrix, modelViewMatrix, degToRad(rotations[0]), [1, 0, 0]);
-  //mat4.rotate(modelViewMatrix, modelViewMatrix, degToRad(rotations[1]), [0, 1, 0]);
-  //mat4.rotate(modelViewMatrix, modelViewMatrix, degToRad(rotations[2]), [0, 0, 1]);
   gl.setUniformLocation
   {
     const numComponents = 3;
@@ -216,15 +197,15 @@ function renderScene(gl, programInfo, buffers, rotations, radX = null, radY = nu
       stride,
       offset);
     gl.enableVertexAttribArray(programInfo.attribLocations.vertexPosition);
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffers.color);
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffers.texcoord);
     gl.vertexAttribPointer(
-      programInfo.attribLocations.vertexColor,
-      3,
-      gl.UNSIGNED_BYTE,
-      true,
+      programInfo.attribLocations.texcoord,
+      2,
+      gl.FLOAT,
+      false,
       stride,
       offset);
-    gl.enableVertexAttribArray(programInfo.attribLocations.vertexColor);
+    gl.enableVertexAttribArray(programInfo.attribLocations.texcoord);
   }
 
   gl.useProgram(programInfo.program);
@@ -253,6 +234,36 @@ function redrawScene(gl, progInfo, buffers) {
   var z = document.querySelector('.slider__z').value;
   
   renderScene(gl, progInfo, buffers, [x, y, z]);
+}
+
+function setTexcoords(gl) {
+  gl.bufferData(
+      gl.ARRAY_BUFFER,
+    new Float32Array([
+      -1.0, 0.0,
+      0.0, Math.sqrt(5),
+      1.0, 0.0,
+
+      -1.0, 0.0,
+      0.0, Math.sqrt(5),
+      1.0, 0.0,
+
+      -1.0, 0.0,
+      0.0, Math.sqrt(5),
+      1.0, 0.0,
+
+      -1.0, 0.0,
+      0.0, Math.sqrt(5),
+      1.0, 0.0,
+
+      -1.0, -1.0,
+      -1.0, 1.0,
+      1.0, -1.0,
+
+      -1.0, 1.0,
+      1.0, 1.0,
+      1.0, -1.0]),
+    gl.STATIC_DRAW);
 }
 
 document.addEventListener('DOMContentLoaded', main);

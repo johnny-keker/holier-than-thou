@@ -1,15 +1,15 @@
-
+precision mediump float;
 // input vertex position
 attribute vec4 aVertexPosition;
-attribute vec3 aVertexColor;
+attribute vec2 aTexcoord;
 
 // provided
 uniform mat4 uModelViewMatrix;
 uniform mat4 uProjectionMatrix;
 
-varying lowp vec3 vColor;
+varying vec2 vTexcoord;
 
 void main() {
-  vColor = aVertexColor;
+  vTexcoord = aTexcoord;
   gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
 }
