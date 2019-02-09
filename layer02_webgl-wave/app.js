@@ -1,6 +1,5 @@
 import * as matrix from '../utils/matrices.js';
 import Mouse from '../utils/mouse.js';
-import parseObj from '../utils/parse_obj.js';
 
 async function main() {
   const canvas = document.querySelector(".gl-canvas");
