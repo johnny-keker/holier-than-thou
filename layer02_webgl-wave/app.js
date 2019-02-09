@@ -1,5 +1,6 @@
 import * as matrix from '../utils/matrices.js';
 import Mouse from '../utils/mouse.js';
+import parseObj from '../utils/parse_obj.js';
 
 async function main() {
   const canvas = document.querySelector(".gl-canvas");
@@ -25,7 +26,7 @@ async function main() {
     'shaders/fragment_shader.glsl'
   );
 
-  const buffers = initBuffers(gl);
+  const buffers = await initBuffers(gl);
 
   renderScene(gl, progInfo, buffers, [0, 0, 0]);
 
@@ -45,6 +46,7 @@ async function initShader(gl, vertex, fragment) {
 
   // init program
   const program = gl.createProgram();
+
   gl.attachShader(program, vertexShader);
   gl.attachShader(program, fragmentShader);
   gl.linkProgram(program);
@@ -64,6 +66,7 @@ async function initShader(gl, vertex, fragment) {
       projectionMatrix: gl.getUniformLocation(program, 'uProjectionMatrix'),
       modelViewMatrix: gl.getUniformLocation(program, 'uModelViewMatrix'),
       texture: gl.getUniformLocation(program, 'uTexture'),
+      phase: gl.getUniformLocation(program, 'uPhase'),
     },
   };
 
@@ -73,6 +76,8 @@ async function initShader(gl, vertex, fragment) {
 async function loadShader(gl, type, filepath) {
   const programText = await (await fetch(filepath)).text();
   const shader = gl.createShader(type);
+
+  console.log(programText);
 
   gl.shaderSource(shader, programText);
   gl.compileShader(shader);
@@ -86,55 +91,31 @@ async function loadShader(gl, type, filepath) {
   return shader;
 }
 
-function initBuffers(gl) {
+async function initBuffers(gl) {
+  var positions = [];
+  var texcoors = [];
+  const numVertex = 9;
+  const x = 100;
+  const y = 100;
+  for (var i = -x/ 2; i < x / 2; i++) {
+    for (var j = -y / 2; j < y / 2; j++) {
+      positions = positions.concat(generateSquare(i, j));
+      texcoors = texcoors.concat(generateTexcoor(i, j));
+    }
+  };
+  console.log(positions);
   const positionBuffer = gl.createBuffer();
-
   gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-
-  const positions = [
-    // first face
-    0.0, 0.0, 2.0,
-    1.0, -1.0, 0.0,
-    1.0, 1.0, 0.0,
-
-    // second face
-    0.0, 0.0, 2.0,
-    1.0, -1.0, 0.0,
-    -1.0, -1.0, 0.0,
-
-    // third face
-    0.0, 0.0, 2.0,
-    -1.0, -1.0, 0.0,
-    -1.0, 1.0, 0.0,
-
-    // fourth face
-    0.0, 0.0, 2.0,
-    -1.0, 1.0, 0.0,
-    1.0, 1.0, 0.0,
-
-    // bottom first triangle
-    -1.0, 1.0, 0.0,
-    1.0, -1.0, 0.0,
-    1.0, 1.0, 0.0,
-
-    // bottom second triangle
-    -1.0, 1.0, 0.0,
-    1.0, -1.0, 0.0,
-    -1.0, -1.0, 0.0,
-  ];
-
-  //for (var i = 0; i < positions.lehgth; i++)
-  //positions[i] = positions[i] / 4;
-
-
   gl.bufferData(gl.ARRAY_BUFFER,
-    new Float32Array(positions),
+   new Float32Array(positions),
+   gl.STATIC_DRAW);
+
+  const textureBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, textureBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER,
+    new Float32Array(texcoors),
     gl.STATIC_DRAW);
-  
-  const texcoordBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
-  setTexcoords(gl);
-  
+    
   var texture = gl.createTexture();
   gl.bindTexture(gl.TEXTURE_2D, texture);
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE,
@@ -148,7 +129,8 @@ function initBuffers(gl) {
     gl.generateMipmap(gl.TEXTURE_2D);
   });
 
-  return { position: positionBuffer, texture: texture, texcoord: texcoordBuffer };
+  console.log(texture);
+  return { position: positionBuffer, texture: texture, texcoord: textureBuffer, numItems: x * y * 6 };
 }
 
 function renderScene(gl, programInfo, buffers, rotations, radX = null, radY = null) {
@@ -165,7 +147,7 @@ function renderScene(gl, programInfo, buffers, rotations, radX = null, radY = nu
   const fieldOfView = 45;
   const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
   const zNear = 0.1;
-  const zFar = 100.0;
+  const zFar = 200.0;
   var projectionMatrix = new Float32Array(
     [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]
   );
@@ -174,14 +156,14 @@ function renderScene(gl, programInfo, buffers, rotations, radX = null, radY = nu
   var modelViewMatrix = new Float32Array(
     [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]
   );
-
+  
   projectionMatrix = matrix.perspective(projectionMatrix,
     fieldOfView,
     aspect,
     zNear,
     zFar);
-
-  modelViewMatrix = matrix.translate(modelViewMatrix, -0.0, 0.0, -6.0);
+  
+  modelViewMatrix = matrix.translate(modelViewMatrix, 0.0, 0.0, -100.0);
   modelViewMatrix = matrix.rotate(modelViewMatrix, rotations, [radX, radY]);
   gl.setUniformLocation
   {
@@ -220,10 +202,11 @@ function renderScene(gl, programInfo, buffers, rotations, radX = null, radY = nu
     programInfo.uniformLocations.modelViewMatrix,
     false,
     modelViewMatrix);
-
+  var d = new Date();
+  gl.uniform1f(programInfo.uniformLocations.phase, d.getTime());
   {
     const offset = 0;
-    const vertexCount = 18;
+    const vertexCount = buffers.numItems;
     gl.drawArrays(gl.TRIANGLES, offset, vertexCount);
   }
 }
@@ -235,52 +218,7 @@ function redrawScene(gl, progInfo, buffers) {
   var y = document.querySelector('.slider__y').value;
   var z = document.querySelector('.slider__z').value;
 
-  /*var texture = gl.createTexture();
-  gl.bindTexture(gl.TEXTURE_2D, texture);
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE,
-    new Uint8Array([0, 0, 255, 255]));
-  var image = new Image();
-  image.src = "../textures/00.jpg"
-  image.addEventListener('load', function() {
-    // Now that the image has loaded make copy it to the texture.
-    gl.bindTexture(gl.TEXTURE_2D, texture);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA,gl.UNSIGNED_BYTE, image);
-    gl.generateMipmap(gl.TEXTURE_2D);
-  });
-
-  buffers.texture = texture;*/
-
   renderScene(gl, progInfo, buffers, [x, y, z]);
-}
-
-function setTexcoords(gl) {
-  gl.bufferData(
-      gl.ARRAY_BUFFER,
-    new Float32Array([
-      -1.0, 0.0,
-      0.0, Math.sqrt(5),
-      1.0, 0.0,
-
-      -1.0, 0.0,
-      0.0, Math.sqrt(5),
-      1.0, 0.0,
-
-      -1.0, 0.0,
-      0.0, Math.sqrt(5),
-      1.0, 0.0,
-
-      -1.0, 0.0,
-      0.0, Math.sqrt(5),
-      1.0, 0.0,
-
-      -1.0, -1.0,
-      -1.0, 1.0,
-      1.0, -1.0,
-
-      -1.0, 1.0,
-      1.0, 1.0,
-      1.0, -1.0]),
-    gl.STATIC_DRAW);
 }
 
 function createTextureMenu() {
@@ -302,4 +240,28 @@ function createTextureMenu() {
   }
 }
 
+function generateSquare(x, y) {
+  return [
+    // left triangle
+    x, y, 0.0,
+    x + 1.0, y, 0.0,
+    x, y + 1.0, 0.0,
+    // right triangle
+    x + 1.0, y + 1.0, 0.0,
+    x, y + 1.0, 0.0,
+    x + 1.0, y, 0.0,
+  ]
+}
+
+function generateTexcoor(x, y) {
+  return [
+    x, y,
+    x + 1.0, y,
+    x, y + 1.0,
+
+    x + 1.0, y + 1.0,
+    x, y + 1.0,
+    x + 1.0, y
+  ]
+}
 document.addEventListener('DOMContentLoaded', main);

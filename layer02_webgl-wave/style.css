@@ -1,0 +1,21 @@
+body {
+  margin: 0;
+  justify-content: center;
+  display: flex;
+  background-color: black;
+  align-items: center;
+  height: 100vh;
+}
+
+.controls {
+  color: white;
+  border-style: solid;
+  border-radius: 10px;
+  width: 30%;
+}
+
+.controls__slider {
+  display: inline-block;
+  margin: 3px;
+  margin-left: 11%;
+}
