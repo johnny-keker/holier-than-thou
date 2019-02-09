@@ -34,7 +34,7 @@ async function main() {
   });
 
   //createTextureMenu();
-
+  //window.requestAnimationFrame(() => redrawScene(gl, progInfo, buffers, 1.0));
   document.addEventListener('input', () => redrawScene(gl, progInfo, buffers));
 }
 
@@ -132,7 +132,7 @@ async function initBuffers(gl) {
   return { position: positionBuffer, texture: texture, texcoord: textureBuffer, numItems: x * y * 6 };
 }
 
-function renderScene(gl, programInfo, buffers, rotations, radX = null, radY = null) {
+function renderScene(gl, programInfo, buffers, rotations, phase, radX = null, radY = null) {
   // init
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
   gl.clearDepth(1.0);
@@ -201,8 +201,7 @@ function renderScene(gl, programInfo, buffers, rotations, radX = null, radY = nu
     programInfo.uniformLocations.modelViewMatrix,
     false,
     modelViewMatrix);
-  var d = new Date();
-  gl.uniform1f(programInfo.uniformLocations.phase, d.getTime());
+  gl.uniform1f(programInfo.uniformLocations.phase, phase);
   {
     const offset = 0;
     const vertexCount = buffers.numItems;
