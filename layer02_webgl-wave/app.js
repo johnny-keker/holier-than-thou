@@ -1,5 +1,6 @@
 import * as matrix from '../utils/matrices.js';
 import Mouse from '../utils/mouse.js';
+import * as videoTexture from './video-texture.js';
 
 let gl;
 let progInfo;
@@ -7,6 +8,9 @@ let buffers;
 let currX = 0;
 let currZ = 0;
 let rotations = [0, 0, 0];
+let texture;
+let video;
+let phase = 0;
 
 async function main() {
   const canvas = document.querySelector(".gl-canvas");
@@ -60,8 +64,6 @@ async function main() {
   }
   );
 
-  var phase = 0;
-  var phaseRad = 0;
   document.addEventListener('input', () => redrawScene());
 }
 
@@ -139,7 +141,7 @@ async function initBuffers(gl) {
   const textureBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, textureBuffer);
   gl.bufferData(gl.ARRAY_BUFFER, texcoors, gl.STATIC_DRAW);
-    
+  /*
   const textureBlob = await fetch('../textures/00.jpg').then((r) => r.blob());
   const textureBitmap = await window.createImageBitmap(textureBlob);
   var texture = gl.createTexture();
@@ -147,11 +149,16 @@ async function initBuffers(gl) {
   gl.bindTexture(gl.TEXTURE_2D, texture);
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, textureBitmap);
   gl.generateMipmap(gl.TEXTURE_2D);
-
-  return { position: positionBuffer, texture: texture, texcoord: textureBuffer, numItems: x * y * 6 };
+  */
+  texture = videoTexture.initVideoTexture(gl);
+  video = videoTexture.setUp('rave');
+  return { position: positionBuffer, texcoord: textureBuffer, texture: texture, numItems: x * y * 6 };
 }
 
 function renderScene() {
+  phase += 0.1;
+  rotations[2] += 0.1;
+
   // init
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
   gl.clearDepth(1.0);
@@ -174,13 +181,14 @@ function renderScene() {
   var modelViewMatrix = new Float32Array(
     [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]
   );
-  
+
+  if (videoTexture.copyVideo)
+    videoTexture.updateTexture(gl, texture, video);
   projectionMatrix = matrix.perspective(projectionMatrix,
     fieldOfView,
     aspect,
     zNear,
     zFar);
-  rotations[2] += 1;
   modelViewMatrix = matrix.translate(modelViewMatrix, currX, 0, -100.0 + currZ);
   modelViewMatrix = matrix.rotate(modelViewMatrix, rotations);
   gl.setUniformLocation
@@ -220,7 +228,7 @@ function renderScene() {
     progInfo.uniformLocations.modelViewMatrix,
     false,
     modelViewMatrix);
-  gl.uniform1f(progInfo.uniformLocations.phase, 0.0);
+  gl.uniform1f(progInfo.uniformLocations.phase, phase);
   {
     const offset = 0;
     const vertexCount = buffers.numItems;
@@ -268,14 +276,18 @@ function generateSquare(x, y) {
 }
 
 function generateTexcoor(x, y) {
+  x /= 100;
+  y /= 100;
+  x += 0.5;
+  y += 0.5;
   return [
     x, y,
-    x + 1.0, y,
-    x, y + 1.0,
+    x + 0.01, y,
+    x, y + 0.01,
 
-    x + 1.0, y + 1.0,
-    x, y + 1.0,
-    x + 1.0, y
+    x + 0.01, y + 0.01,
+    x, y + 0.01,
+    x + 0.01, y
   ]
 }
 document.addEventListener('DOMContentLoaded', main);
