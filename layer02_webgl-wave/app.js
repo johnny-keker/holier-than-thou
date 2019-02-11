@@ -57,13 +57,12 @@ async function main() {
       default:
         return;
     }
-    redrawScene(gl, progInfo, buffers, [currX, 0, currZ]);
   }
   );
 
   var phase = 0;
   var phaseRad = 0;
-  document.addEventListener('input', () => redrawScene(gl, progInfo, buffers, [currX, 0, currZ]));
+  document.addEventListener('input', () => redrawScene());
 }
 
 async function initShader(gl, vertex, fragment) {
@@ -231,9 +230,9 @@ function renderScene() {
 }
 
 function redrawScene() {
-  rotations[0] = document.querySelector('.slider__x').value;
-  rotations[1] = document.querySelector('.slider__y').value;
-  rotations[2] = document.querySelector('.slider__z').value;
+  rotations[0] = parseFloat(document.querySelector('.slider__x').value);
+  rotations[1] = parseFloat(document.querySelector('.slider__y').value);
+  rotations[2] = parseFloat(document.querySelector('.slider__z').value);
 }
 
 function createTextureMenu() {
