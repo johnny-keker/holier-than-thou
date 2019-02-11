@@ -27,15 +27,46 @@ async function main() {
 
   const buffers = await initBuffers(gl);
 
-  renderScene(gl, progInfo, buffers, [0, 0, 0]);
+  renderScene(gl, progInfo, buffers, [0, 0, 0], [0, 0, 0]);
+  var currX = 0;
+  var currZ = 0;
+  document.addEventListener('keypress', (e) => {
+    console.log(e.charCode);
+    switch (e.charCode) {
+      case 1094:
+      case 119:
+        currZ += 1;
+        break;
+      case 1099:
+      case 115:
+        currZ -= 1;
+        break;
+      case 1092:
+      case 97:
+        currX += 1;
+        break;
+      case 1074:
+      case 100:
+        currX -= 1;
+        break;
+      default:
+        return;
+    }
+    redrawScene(gl, progInfo, buffers, [currX, 0, currZ]);
+  }
+  );
 
-  new Mouse(canvas, (x, y) => {
+  /*new Mouse(canvas, (x, y) => {
     renderScene(gl, progInfo, buffers, [0, 0, document.querySelector('.slider__z').value], x, y);
   });
-
+  var phase = 0;
+  var phaseRad = 0;
   //createTextureMenu();
-  //window.requestAnimationFrame(() => redrawScene(gl, progInfo, buffers, 1.0));
-  document.addEventListener('input', () => redrawScene(gl, progInfo, buffers));
+  /*window.requestAnimationFrame(() => {
+    phase, phaseRad = matrix.getNewPhase(phase);
+    redrawScene(gl, progInfo, buffers, phaseRad)
+  });*/
+  document.addEventListener('input', () => redrawScene(gl, progInfo, buffers, [currX, 0, currZ]));
 }
 
 async function initShader(gl, vertex, fragment) {
@@ -93,7 +124,6 @@ async function loadShader(gl, type, filepath) {
 async function initBuffers(gl) {
   var positions = [];
   var texcoors = [];
-  const numVertex = 9;
   const x = 100;
   const y = 100;
   for (var i = -x/ 2; i < x / 2; i++) {
@@ -102,7 +132,6 @@ async function initBuffers(gl) {
       texcoors = texcoors.concat(generateTexcoor(i, j));
     }
   };
-  console.log(positions);
   const positionBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
   gl.bufferData(gl.ARRAY_BUFFER,
@@ -132,7 +161,7 @@ async function initBuffers(gl) {
   return { position: positionBuffer, texture: texture, texcoord: textureBuffer, numItems: x * y * 6 };
 }
 
-function renderScene(gl, programInfo, buffers, rotations, phase, radX = null, radY = null) {
+function renderScene(gl, programInfo, buffers, rotations, camPos, radX = null, radY = null) {
   // init
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
   gl.clearDepth(1.0);
@@ -162,7 +191,7 @@ function renderScene(gl, programInfo, buffers, rotations, phase, radX = null, ra
     zNear,
     zFar);
   
-  modelViewMatrix = matrix.translate(modelViewMatrix, 0.0, 0.0, -100.0);
+  modelViewMatrix = matrix.translate(modelViewMatrix, camPos[0], camPos[1], -100.0 + camPos[2]);
   modelViewMatrix = matrix.rotate(modelViewMatrix, rotations, [radX, radY]);
   gl.setUniformLocation
   {
@@ -201,7 +230,7 @@ function renderScene(gl, programInfo, buffers, rotations, phase, radX = null, ra
     programInfo.uniformLocations.modelViewMatrix,
     false,
     modelViewMatrix);
-  gl.uniform1f(programInfo.uniformLocations.phase, phase);
+  gl.uniform1f(programInfo.uniformLocations.phase, 0.0);
   {
     const offset = 0;
     const vertexCount = buffers.numItems;
@@ -211,12 +240,12 @@ function renderScene(gl, programInfo, buffers, rotations, phase, radX = null, ra
 
 
 
-function redrawScene(gl, progInfo, buffers) {
+function redrawScene(gl, progInfo, buffers, cam) {
   var x = document.querySelector('.slider__x').value;
   var y = document.querySelector('.slider__y').value;
   var z = document.querySelector('.slider__z').value;
 
-  renderScene(gl, progInfo, buffers, [x, y, z]);
+  renderScene(gl, progInfo, buffers, [x, y, z], cam);
 }
 
 function createTextureMenu() {

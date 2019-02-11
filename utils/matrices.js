@@ -143,3 +143,10 @@ function radToDeg(r) {
 function degToRad(d) {
     return d * Math.PI / 180;
 }
+
+export function getNewPhase(oldPhase) {
+  oldPhase += 1;
+  if (oldPhase > 360)
+    oldPhase = 0;
+  return (oldPhase, degToRad(oldPhase));
+}
