@@ -1,10 +1,17 @@
 import * as matrix from '../utils/matrices.js';
 import Mouse from '../utils/mouse.js';
 
+let gl;
+let progInfo;
+let buffers;
+let currX = 0;
+let currZ = 0;
+let rotations = [0, 0, 0];
+
 async function main() {
   const canvas = document.querySelector(".gl-canvas");
   // GL context init
-  const gl = canvas.getContext("webgl");
+  gl = canvas.getContext("webgl");
   
   var x = 0, y = 0;
   var mouseDown = false;
@@ -19,17 +26,15 @@ async function main() {
   // fill the color buffer with the clear color
   gl.clear(gl.COLOR_BUFFER_BIT);
 
-  const progInfo = await initShader(
+  progInfo = await initShader(
     gl, 
     'shaders/vertex_shader.glsl',
     'shaders/fragment_shader.glsl'
   );
 
-  const buffers = await initBuffers(gl);
+  buffers = await initBuffers(gl);
 
-  renderScene(gl, progInfo, buffers, [0, 0, 0], [0, 0, 0]);
-  var currX = 0;
-  var currZ = 0;
+  renderScene();
   document.addEventListener('keypress', (e) => {
     console.log(e.charCode);
     switch (e.charCode) {
@@ -56,16 +61,8 @@ async function main() {
   }
   );
 
-  /*new Mouse(canvas, (x, y) => {
-    renderScene(gl, progInfo, buffers, [0, 0, document.querySelector('.slider__z').value], x, y);
-  });
   var phase = 0;
   var phaseRad = 0;
-  //createTextureMenu();
-  /*window.requestAnimationFrame(() => {
-    phase, phaseRad = matrix.getNewPhase(phase);
-    redrawScene(gl, progInfo, buffers, phaseRad)
-  });*/
   document.addEventListener('input', () => redrawScene(gl, progInfo, buffers, [currX, 0, currZ]));
 }
 
@@ -122,46 +119,40 @@ async function loadShader(gl, type, filepath) {
 }
 
 async function initBuffers(gl) {
-  var positions = [];
-  var texcoors = [];
   const x = 100;
   const y = 100;
-  for (var i = -x/ 2; i < x / 2; i++) {
+  var positions = new Float32Array(x * y * 18);
+  var texcoors = new Float32Array(x * y * 12);
+  var filledPos = 0;
+  var filledCoors = 0;
+  for (var i = -x / 2; i < x / 2; i++) {
     for (var j = -y / 2; j < y / 2; j++) {
-      positions = positions.concat(generateSquare(i, j));
-      texcoors = texcoors.concat(generateTexcoor(i, j));
+      positions.set(generateSquare(i, j), filledPos);
+      texcoors.set(generateTexcoor(i, j), filledCoors);
+      filledPos += 18;
+      filledCoors += 12;
     }
   };
   const positionBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER,
-   new Float32Array(positions),
-   gl.STATIC_DRAW);
+  gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
 
   const textureBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, textureBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER,
-    new Float32Array(texcoors),
-    gl.STATIC_DRAW);
+  gl.bufferData(gl.ARRAY_BUFFER, texcoors, gl.STATIC_DRAW);
     
+  const textureBlob = await fetch('../textures/00.jpg').then((r) => r.blob());
+  const textureBitmap = await window.createImageBitmap(textureBlob);
   var texture = gl.createTexture();
-  gl.bindTexture(gl.TEXTURE_2D, texture);
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE,
-    new Uint8Array([0, 0, 255, 255]));
-  var image = new Image();
-  image.src = "../textures/00.jpg"
-  image.addEventListener('load', function() {
-    // Now that the image has loaded make copy it to the texture.
-    gl.bindTexture(gl.TEXTURE_2D, texture);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA,gl.UNSIGNED_BYTE, image);
-    gl.generateMipmap(gl.TEXTURE_2D);
-  });
 
-  console.log(texture);
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, textureBitmap);
+  gl.generateMipmap(gl.TEXTURE_2D);
+
   return { position: positionBuffer, texture: texture, texcoord: textureBuffer, numItems: x * y * 6 };
 }
 
-function renderScene(gl, programInfo, buffers, rotations, camPos, radX = null, radY = null) {
+function renderScene() {
   // init
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
   gl.clearDepth(1.0);
@@ -190,9 +181,9 @@ function renderScene(gl, programInfo, buffers, rotations, camPos, radX = null, r
     aspect,
     zNear,
     zFar);
-  
-  modelViewMatrix = matrix.translate(modelViewMatrix, camPos[0], camPos[1], -100.0 + camPos[2]);
-  modelViewMatrix = matrix.rotate(modelViewMatrix, rotations, [radX, radY]);
+  rotations[2] += 1;
+  modelViewMatrix = matrix.translate(modelViewMatrix, currX, 0, -100.0 + currZ);
+  modelViewMatrix = matrix.rotate(modelViewMatrix, rotations);
   gl.setUniformLocation
   {
     const numComponents = 3;
@@ -202,50 +193,47 @@ function renderScene(gl, programInfo, buffers, rotations, camPos, radX = null, r
     const offset = 0;
     gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
     gl.vertexAttribPointer(
-      programInfo.attribLocations.vertexPosition,
+      progInfo.attribLocations.vertexPosition,
       numComponents,
       type,
       normalize,
       stride,
       offset);
-    gl.enableVertexAttribArray(programInfo.attribLocations.vertexPosition);
+    gl.enableVertexAttribArray(progInfo.attribLocations.vertexPosition);
     gl.bindBuffer(gl.ARRAY_BUFFER, buffers.texcoord);
     gl.vertexAttribPointer(
-      programInfo.attribLocations.texcoord,
+      progInfo.attribLocations.texcoord,
       2,
       gl.FLOAT,
       false,
       stride,
       offset);
-    gl.enableVertexAttribArray(programInfo.attribLocations.texcoord);
+    gl.enableVertexAttribArray(progInfo.attribLocations.texcoord);
   }
 
-  gl.useProgram(programInfo.program);
+  gl.useProgram(progInfo.program);
 
   gl.uniformMatrix4fv(
-    programInfo.uniformLocations.projectionMatrix,
+    progInfo.uniformLocations.projectionMatrix,
     false,
     projectionMatrix);
   gl.uniformMatrix4fv(
-    programInfo.uniformLocations.modelViewMatrix,
+    progInfo.uniformLocations.modelViewMatrix,
     false,
     modelViewMatrix);
-  gl.uniform1f(programInfo.uniformLocations.phase, 0.0);
+  gl.uniform1f(progInfo.uniformLocations.phase, 0.0);
   {
     const offset = 0;
     const vertexCount = buffers.numItems;
     gl.drawArrays(gl.TRIANGLES, offset, vertexCount);
   }
+  requestAnimationFrame(renderScene);
 }
 
-
-
-function redrawScene(gl, progInfo, buffers, cam) {
-  var x = document.querySelector('.slider__x').value;
-  var y = document.querySelector('.slider__y').value;
-  var z = document.querySelector('.slider__z').value;
-
-  renderScene(gl, progInfo, buffers, [x, y, z], cam);
+function redrawScene() {
+  rotations[0] = document.querySelector('.slider__x').value;
+  rotations[1] = document.querySelector('.slider__y').value;
+  rotations[2] = document.querySelector('.slider__z').value;
 }
 
 function createTextureMenu() {
