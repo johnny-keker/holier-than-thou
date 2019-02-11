@@ -66,8 +66,14 @@ async function main() {
 
   document.addEventListener('input', () => redrawScene());
   new Mouse(canvas, (radX, radY) => {
-    document.querySelector('.slider__x').value = matrix.radToDeg(radX) - 180;   
-    document.querySelector('.slider__y').value = matrix.radToDeg(radY) - 180;
+    let x = matrix.radToDeg(radX);
+    let y = matrix.radToDeg(radY);
+    if (x < -180) x = 180;
+    else if (x > 180) x = -180;
+    if (y < -180) y = 180;
+    else if (y > 180) y = -180;
+    document.querySelector('.slider__x').value = x;    
+    document.querySelector('.slider__y').value = y;
     redrawScene();
   });
 }
@@ -163,6 +169,8 @@ async function initBuffers(gl) {
 function renderScene() {
   phase += 0.1;
   rotations[2] += 0.1;
+  if (rotations[2] > 180) rotations[2] = -180;
+  document.querySelector('.slider__z').value = rotations[2];
 
   // init
   gl.clearColor(0.0, 0.0, 0.0, 1.0);

@@ -34,6 +34,11 @@ export default class Mouse {
         dradY = 2 * Math.PI / this.canvas.height * dy;
     this.currRadX += dradX;
     this.currRadY += dradY;
+
+    if (this.currRadX > 3.14) this.currRadX = -3.14;
+    else if (this.currRadX < -3.14) this.currRadX = 3.14;
+    if (this.currRadY > 3.14) this.currRadY = -3.14;
+    else if (this.currRadY < -3.14) this.currRadY = 3.14;
     
     this.oldX = x;
     this.oldY = y;
