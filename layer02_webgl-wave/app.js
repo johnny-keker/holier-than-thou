@@ -65,6 +65,11 @@ async function main() {
   );
 
   document.addEventListener('input', () => redrawScene());
+  new Mouse(canvas, (radX, radY) => {
+    document.querySelector('.slider__x').value = matrix.radToDeg(radX) - 180;   
+    document.querySelector('.slider__y').value = matrix.radToDeg(radY) - 180;
+    redrawScene();
+  });
 }
 
 async function initShader(gl, vertex, fragment) {

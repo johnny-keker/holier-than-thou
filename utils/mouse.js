@@ -38,7 +38,7 @@ export default class Mouse {
     this.oldX = x;
     this.oldY = y;
 
-    this.handler(this.currRadX, this.currRadY);
+    this.handler(this.currRadY, this.currRadX);
   }
 
   static readPos(e, canvas) {
